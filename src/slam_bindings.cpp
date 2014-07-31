@@ -41,7 +41,23 @@ void TMetricMapInitializer_set_COccupancyGridMap2D(TMetricMapInitializer &self, 
 }
 
 // CICP
-tuple CICP_AlignPDF(CICP &self, COccupancyGridMap2D &m1, CSimplePointsMap &m2, CPosePDFGaussian &initialEstimationPDF)
+tuple CICP_AlignPDF1(CICP &self, COccupancyGridMap2D &m1, CSimplePointsMap &m2, CPosePDFGaussian &initialEstimationPDF)
+{
+    CPosePDFGaussian posePDF;
+    float runningTime;
+    CICP::TReturnInfo info;
+
+    CPosePDFPtr posePDFPtr = self.AlignPDF(&m1, &m2, initialEstimationPDF, &runningTime, &info);
+    posePDF.copyFrom(*posePDFPtr);
+
+    boost::python::list ret_val;
+    ret_val.append(posePDF);
+    ret_val.append(runningTime);
+    ret_val.append(info);
+    return tuple(ret_val);
+}
+
+tuple CICP_AlignPDF2(CICP &self, CSimplePointsMap &m1, CSimplePointsMap &m2, CPosePDFGaussian &initialEstimationPDF)
 {
     CPosePDFGaussian posePDF;
     float runningTime;
@@ -193,7 +209,8 @@ void export_slam()
     {
         scope s = class_<CICP>("CICP", init<CICP::TConfigParams>())
             .def_readwrite("options", &CICP::options)
-            .def("AlignPDF", &CICP_AlignPDF)
+            .def("AlignPDF", &CICP_AlignPDF1)
+            .def("AlignPDF", &CICP_AlignPDF2)
         ;
 
         class_<CICP::TConfigParams, bases<CLoadableOptions> >("TConfigParams", init<>())

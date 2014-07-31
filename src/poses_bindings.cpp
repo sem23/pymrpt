@@ -1,6 +1,7 @@
 /* MRPT */
 #include <mrpt/poses/CPose2D.h>
 #include <mrpt/poses/CPose3D.h>
+#include <mrpt/poses/CPose3DQuat.h>
 #include <mrpt/poses/CPosePDF.h>
 #include <mrpt/poses/CPosePDFGaussian.h>
 #include <mrpt/poses/CPose3DPDF.h>
@@ -18,6 +19,11 @@ using namespace boost::python;
 using namespace mrpt::poses;
 using namespace mrpt::utils;
 
+// prototypes
+object CPose3D_to_ROS_Pose_msg(CPose3D &self);
+void CPose3D_from_ROS_Pose_msg(CPose3D &self, object pose_msg);
+// end of prototypes
+
 
 // CPose2D
 double &(CPose2D::*CPose2D_get_x)()             = &CPose2D::x;
@@ -27,6 +33,20 @@ void    (CPose2D::*CPose2D_set_y)(double)       = &CPose2D::y;
 double &(CPose2D::*CPose2D_get_phi)()           = &CPose2D::phi;
 void    (CPose2D::*CPose2D_set_phi)(double)     = &CPose2D::phi;
 
+object CPose2D_to_ROS_Pose_msg(CPose2D &self)
+{
+    CPose3D pose(self);
+    return CPose3D_to_ROS_Pose_msg(pose);
+}
+
+void CPose2D_from_ROS_Pose_msg(CPose2D &self, object pose_msg)
+{
+    CPose3D pose;
+    CPose3D_from_ROS_Pose_msg(pose, pose_msg);
+    self = CPose2D(pose);
+}
+// end of CPose2D
+
 // CPose3D
 double &(CPose3D::*CPose3D_get_x)()             = &CPose3D::x;
 void    (CPose3D::*CPose3D_set_x)(double)       = &CPose3D::x;
@@ -34,7 +54,6 @@ double &(CPose3D::*CPose3D_get_y)()             = &CPose3D::y;
 void    (CPose3D::*CPose3D_set_y)(double)       = &CPose3D::y;
 double &(CPose3D::*CPose3D_get_z)()             = &CPose3D::z;
 void    (CPose3D::*CPose3D_set_z)(double)       = &CPose3D::z;
-
 
 tuple CPose3D_getYawPitchRoll(CPose3D &self)
 {
@@ -46,6 +65,39 @@ tuple CPose3D_getYawPitchRoll(CPose3D &self)
     ret_val.append(roll);
     return tuple(ret_val);
 }
+
+object CPose3D_to_ROS_Pose_msg(CPose3D &self)
+{
+    CPose3DQuat pose_quat(self);
+    // import msg
+    dict locals;
+    exec("from geometry_msgs.msg import Pose\n"
+         "pose_msg = Pose()\n",
+         object(), locals);
+    object pose_msg = locals["pose_msg"];
+    pose_msg.attr("position").attr("x") = pose_quat[0];
+    pose_msg.attr("position").attr("y") = pose_quat[1];
+    pose_msg.attr("position").attr("z") = pose_quat[2];
+    pose_msg.attr("orientation").attr("x") = pose_quat[4];
+    pose_msg.attr("orientation").attr("y") = pose_quat[5];
+    pose_msg.attr("orientation").attr("z") = pose_quat[6];
+    pose_msg.attr("orientation").attr("w") = pose_quat[3];
+    return pose_msg;
+}
+
+void CPose3D_from_ROS_Pose_msg(CPose3D &self, object pose_msg)
+{
+    CPose3DQuat pose_quat;
+    pose_quat[0] = extract<double>(pose_msg.attr("position").attr("x"));
+    pose_quat[1] = extract<double>(pose_msg.attr("position").attr("y"));
+    pose_quat[2] = extract<double>(pose_msg.attr("position").attr("z"));
+    pose_quat[4] = extract<double>(pose_msg.attr("orientation").attr("x"));
+    pose_quat[5] = extract<double>(pose_msg.attr("orientation").attr("y"));
+    pose_quat[6] = extract<double>(pose_msg.attr("orientation").attr("z"));
+    pose_quat[3] = extract<double>(pose_msg.attr("orientation").attr("w"));
+    self = CPose3D(pose_quat);
+}
+// end of CPose3D
 
 
 // CPosePDF
@@ -212,6 +264,8 @@ void export_poses()
             )
             .def(self + self)
             .def(self - self)
+            .def("to_ROS_Pose_msg", &CPose2D_to_ROS_Pose_msg)
+            .def("from_ROS_Pose_msg", &CPose2D_from_ROS_Pose_msg)
         ;
     }
 
@@ -233,6 +287,8 @@ void export_poses()
             .def("setYawPitchRoll", &CPose3D::setYawPitchRoll)
             .def("getYawPitchRoll", &CPose3D_getYawPitchRoll)
             .def("setFromValues", &CPose3D::setFromValues)
+            .def("to_ROS_Pose_msg", &CPose3D_to_ROS_Pose_msg)
+            .def("from_ROS_Pose_msg", &CPose3D_from_ROS_Pose_msg)
         ;
     }
 

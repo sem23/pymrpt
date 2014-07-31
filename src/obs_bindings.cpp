@@ -178,8 +178,8 @@ object CObservation2DRangeScan_to_ROS_LaserScan_msg(CObservation2DRangeScan &sel
     scan_msg.attr("header").attr("stamp") = TTimeStamp_to_ROS_Time(long_(self.timestamp));
     scan_msg.attr("range_min") = 0.0;
     scan_msg.attr("range_max") = self.maxRange;
-    scan_msg.attr("angle_min") = self.aperture / 2.0;
-    scan_msg.attr("angle_max") = -self.aperture / 2.0;
+    scan_msg.attr("angle_min") = -self.aperture / 2.0;
+    scan_msg.attr("angle_max") = self.aperture / 2.0;
     scan_msg.attr("angle_increment") = self.aperture / self.scan.size();
     // set ranges (no intensities given in mrpt)
     list ranges;
@@ -194,7 +194,7 @@ void CObservation2DRangeScan_from_ROS_LaserScan_msg(CObservation2DRangeScan &sel
     self.sensorLabel = extract<std::string>(scan_msg.attr("header").attr("frame_id"));
     self.timestamp = extract<long>(TTimeStamp_from_ROS_Time(scan_msg.attr("header").attr("stamp")));
     self.maxRange = extract<float>(scan_msg.attr("range_max"));
-    self.aperture = extract<float>(scan_msg.attr("angle_min")) * 2.0;
+    self.aperture = extract<float>(scan_msg.attr("angle_max")) - extract<float>(scan_msg.attr("angle_min"));
     self.beamAperture = extract<float>(scan_msg.attr("angle_increment"));
     self.sensorPose = pose;
     // set ranges

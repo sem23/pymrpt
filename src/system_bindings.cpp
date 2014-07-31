@@ -34,8 +34,7 @@ object TTimeStamp_to_ROS_Time(long_ timestamp)
     dict locals;
     locals["secs"] = secs;
     exec("import rospy\n"
-         "time = rospy.Time()\n"
-         "time.from_sec(secs)",
+         "time = rospy.Time.from_sec(secs)\n",
          object(), locals);
     return locals["time"];
 }
@@ -43,6 +42,11 @@ object TTimeStamp_to_ROS_Time(long_ timestamp)
 long_ TTimeStamp_from_ROS_Time(object ros_time)
 {
     return system_time_tToTimestamp(extract<double>(ros_time.attr("to_sec")()));
+}
+
+long_ mrpt_system_now()
+{
+    return long_(mrpt::system::getCurrentTime());
 }
 
 void export_system()
@@ -67,6 +71,7 @@ void export_system()
 
     def("timestampToParts", &system_timestampToParts);
     def("time_tToTimestamp", &system_time_tToTimestamp);
-//     def("TTimeStamp_to_ROS_Time", &TTimeStamp_to_ROS_Time);
-//     def("TTimeStamp_from_ROS_Time", &TTimeStamp_from_ROS_Time);
+    def("now", &mrpt_system_now);
+    def("TTimeStamp_from_ROS_Time", &TTimeStamp_from_ROS_Time);
+    def("TTimeStamp_to_ROS_Time", &TTimeStamp_to_ROS_Time);
 }

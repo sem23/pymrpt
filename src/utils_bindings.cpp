@@ -84,6 +84,12 @@ CPose2D CRobotSimulator_getRealPose(CRobotSimulator &self)
 }
 // end of CRobotSimulator
 
+
+// Utils
+double mrpt_utils_DEG2RAD(double deg) { return mrpt::utils::DEG2RAD(deg); }
+double mrpt_utils_RAD2DEG(double rad) { return mrpt::utils::RAD2DEG(rad); }
+// end of Utils
+
 // exporter
 void export_utils()
 {
@@ -114,8 +120,8 @@ void export_utils()
     // CRobotSimulator
     {
         class_<CRobotSimulator>("CRobotSimulator", init<>())
-            .def("setDelayModelParams", &CRobotSimulator_setDelayModelParams)
-            .def("setOdometryErrors", &CRobotSimulator_setOdometryErrors)
+            .def("setDelayModelParams", &CRobotSimulator_setDelayModelParams, "Change the model of delays used for the orders sent to the robot")
+            .def("setOdometryErrors", &CRobotSimulator_setOdometryErrors, "Enable/Disable odometry errors")
             .def("setRealPose", &CRobotSimulator::setRealPose)
             .def("getX", &CRobotSimulator::getX)
             .def("getY", &CRobotSimulator::getY)
@@ -134,4 +140,8 @@ void export_utils()
             .def("getRealPose", &CRobotSimulator_getRealPose)
         ;
     }
+
+    // static module functions
+    def("DEG2RAD", &mrpt_utils_DEG2RAD);
+    def("RAD2DEG", &mrpt_utils_RAD2DEG);
 }

@@ -106,6 +106,8 @@ void COccupancyGridMap2D_from_ROS_OccupancyGrid_msg(COccupancyGridMap2D &self, o
         }
     }
 }
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(COccupancyGridMap2D_loadFromBitmapFile_overloads, loadFromBitmapFile, 2, 4)
 // end of COccupancyGridMap2D
 
 
@@ -189,7 +191,7 @@ void export_maps()
         scope s = class_<COccupancyGridMap2D>("COccupancyGridMap2D", init<optional<float, float, float, float, float> >())
             .def("insertObservation", &COccupancyGridMap2D_insertObservation)
             .def("saveAsBitmapFile", &COccupancyGridMap2D::saveAsBitmapFile)
-            .def("loadFromBitmapFile", &COccupancyGridMap2D::loadFromBitmapFile)
+            .def("loadFromBitmapFile", &COccupancyGridMap2D::loadFromBitmapFile, COccupancyGridMap2D_loadFromBitmapFile_overloads())
             .def("getSizeX", &COccupancyGridMap2D::getSizeX)
             .def("getSizeY", &COccupancyGridMap2D::getSizeY)
             .def("getXMin", &COccupancyGridMap2D::getXMin)
