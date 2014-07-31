@@ -15,6 +15,8 @@
 
 #include "poses_bindings.h"
 
+#include "math.h"
+
 using namespace boost::python;
 using namespace mrpt::poses;
 using namespace mrpt::utils;
@@ -32,6 +34,11 @@ double &(CPose2D::*CPose2D_get_y)()             = &CPose2D::y;
 void    (CPose2D::*CPose2D_set_y)(double)       = &CPose2D::y;
 double &(CPose2D::*CPose2D_get_phi)()           = &CPose2D::phi;
 void    (CPose2D::*CPose2D_set_phi)(double)     = &CPose2D::phi;
+
+std::string CPose2D_asString(CPose2D &self)
+{
+    return self.asString();
+}
 
 object CPose2D_to_ROS_Pose_msg(CPose2D &self)
 {
@@ -262,6 +269,12 @@ void export_poses()
                 make_function(CPose2D_get_phi, return_value_policy<copy_non_const_reference>()),
                 CPose2D_set_phi
             )
+            .def("inverse", &CPose2D::inverse)
+            .def("norm", &CPose2D::norm)
+            .def("normalizePhi", &CPose2D::normalizePhi)
+            .def("__str__", &CPose2D_asString)
+            .def("distance2DTo", &CPose2D::distance2DTo)
+            .def("distance2DFrobeniusTo", &CPose2D::distance2DFrobeniusTo)
             .def(self + self)
             .def(self - self)
             .def("to_ROS_Pose_msg", &CPose2D_to_ROS_Pose_msg)
