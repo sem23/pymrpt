@@ -40,6 +40,27 @@ void TMetricMapInitializer_set_COccupancyGridMap2D(TMetricMapInitializer &self, 
     self.occupancyGridMap2D_options.resolution = resolution;
 }
 
+// CPathPlanningCircularRobot
+tuple CPathPlanningCircularRobot_computePath(CPathPlanningCircularRobot &self, COccupancyGridMap2D &theMap, CPose2D &origin, CPose2D &target)
+{
+    // function args
+    std::deque<math::TPoint2D> path;
+    bool notFound;
+    // invoke function
+    self.computePath(theMap, origin, target, path, notFound);
+    // convert to python compatible
+    boost::python::list ret_val;
+    boost::python::list py_path;
+    for (int i = 0; i < path.size(); ++i) {
+        py_path.append(path[i]);
+    }
+    // setup return value
+    ret_val.append(py_path);
+    ret_val.append(notFound);
+    return tuple(ret_val);
+}
+// end of CPathPlanningCircularRobot
+
 // CICP
 tuple CICP_AlignPDF1(CICP &self, COccupancyGridMap2D &m1, CSimplePointsMap &m2, CPosePDFGaussian &initialEstimationPDF)
 {
@@ -146,7 +167,7 @@ void export_slam()
     // CPathPlanningCircularRobot
     {
         class_<CPathPlanningCircularRobot>("CPathPlanningCircularRobot", init<>())
-            .def("computePath", &CPathPlanningCircularRobot::computePath)
+            .def("computePath", &CPathPlanningCircularRobot_computePath, "This method compute the optimal path for a circular robot, in the given occupancy grid map, from the origin location to a target point.")
             .def_readwrite("robotRadius", &CPathPlanningCircularRobot::robotRadius)
         ;
     }
@@ -209,8 +230,8 @@ void export_slam()
     {
         scope s = class_<CICP>("CICP", init<CICP::TConfigParams>())
             .def_readwrite("options", &CICP::options)
-            .def("AlignPDF", &CICP_AlignPDF1)
-            .def("AlignPDF", &CICP_AlignPDF2)
+            .def("AlignPDF", &CICP_AlignPDF1, "This method computes the PDF of the displacement (relative pose) between two maps (COccupancyGridMap2D/CSimplePointsMap): the relative pose of m2 with respect to m1. This pose is returned as a PDF rather than a single value.")
+            .def("AlignPDF", &CICP_AlignPDF2, "This method computes the PDF of the displacement (relative pose) between two maps (CSimplePointsMap/CSimplePointsMap): the relative pose of m2 with respect to m1. This pose is returned as a PDF rather than a single value.")
         ;
 
         class_<CICP::TConfigParams, bases<CLoadableOptions> >("TConfigParams", init<>())
@@ -253,16 +274,16 @@ void export_slam()
     // CMetricMapBuilder
     {
         scope s = class_<CMetricMapBuilderWrap, boost::noncopyable>("CMetricMapBuilder", no_init)
-            .def("initialize", &CMetricMapBuilder::initialize)
-            .def("clear", &CMetricMapBuilder::clear)
-            .def("getCurrentPoseEstimation", &CMetricMapBuilder::getCurrentPoseEstimation)
-            .def("processActionObservation", &CMetricMapBuilder::processActionObservation)
-            .def("getCurrentlyBuiltMap", &CMetricMapBuilder::getCurrentlyBuiltMap)
-            .def("getCurrentlyBuiltMapSize", &CMetricMapBuilder::getCurrentlyBuiltMapSize)
-            .def("saveCurrentEstimationToImage", &CMetricMapBuilder::saveCurrentEstimationToImage)
-            .def("enableMapUpdating", &CMetricMapBuilder::enableMapUpdating)
-            .def("loadCurrentMapFromFile", &CMetricMapBuilder::loadCurrentMapFromFile)
-            .def("saveCurrentMapToFile", &CMetricMapBuilder::saveCurrentMapToFile)
+            .def("initialize", &CMetricMapBuilder::initialize, "Initialize the method, starting with a known location PDF \"x0\"(if supplied, set to NULL to left unmodified) and a given fixed, past map.")
+            .def("getCurrentPoseEstimation", &CMetricMapBuilder::getCurrentPoseEstimation, "Returns a copy of the current best pose estimation as a pose PDF.")
+            .def("processActionObservation", &CMetricMapBuilder::processActionObservation, "Process a new action and observations pair to update this map.")
+            .def("getCurrentlyBuiltMap", &CMetricMapBuilder::getCurrentlyBuiltMap, "Returns \"out_map\" with the set of \"poses\"-\"sensory-frames\", thus the so far built map.")
+            .def("getCurrentlyBuiltMapSize", &CMetricMapBuilder::getCurrentlyBuiltMapSize, "Returns just how many sensory-frames are stored in the currently build map.")
+            .def("saveCurrentEstimationToImage", &CMetricMapBuilder::saveCurrentEstimationToImage, "A useful method for debugging: the current map (and/or poses) estimation is dumped to an image file.")
+            .def("clear", &CMetricMapBuilder::clear, "Clear all elements of the maps, and reset localization to (0,0,0deg).")
+            .def("enableMapUpdating", &CMetricMapBuilder::enableMapUpdating, "Enables or disables the map updating (default state is enabled).")
+            .def("loadCurrentMapFromFile", &CMetricMapBuilder::loadCurrentMapFromFile, "Load map (mrpt::slam::CSimpleMap) from a \".simplemap\" file")
+            .def("saveCurrentMapToFile", &CMetricMapBuilder::saveCurrentMapToFile, "Save map (mrpt::slam::CSimpleMap) to a \".simplemap\" file.")
         ;
     }
 
@@ -288,7 +309,7 @@ void export_slam()
     // CMetricMapBuilderRBPF
     {
         scope s = class_<CMetricMapBuilderRBPF, bases<CMetricMapBuilder> >("CMetricMapBuilderRBPF", init<CMetricMapBuilderRBPF::TConstructionOptions>())
-            .def("drawCurrentEstimationToImage", &CMetricMapBuilderRBPF::drawCurrentEstimationToImage)
+//          .def("drawCurrentEstimationToImage", &CMetricMapBuilderRBPF::drawCurrentEstimationToImage) // this function seems not to be useful within python
             .def("saveCurrentPathEstimationToTextFile", &CMetricMapBuilderRBPF::saveCurrentPathEstimationToTextFile)
             .def("getCurrentJointEntropy", &CMetricMapBuilderRBPF::getCurrentJointEntropy)
             .def_readwrite("mapPDF", &CMetricMapBuilderRBPF::mapPDF)

@@ -233,14 +233,14 @@ void export_poses()
     // CPosePDF
     {
         class_<CPosePDFWrap, boost::noncopyable>("CPosePDF", no_init)
-            .def("writeToStream", &CPosePDFWrap::writeToStream)
-            .def("readFromStream", &CPosePDFWrap::readFromStream)
-            .def("getMean", &CPosePDFWrap::getMean)
-            .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean)
-            .def("saveToTextFile", &CPosePDFWrap::saveToTextFile)
-            .def("copyFrom", &CPosePDFWrap::copyFrom)
-            .def("bayesianFusion", &CPosePDFWrap::bayesianFusion)
-            .def("inverse", &CPosePDFWrap::inverse)
+            .def("writeToStream", &CPosePDFWrap::writeToStream, "Introduces a pure virtual method responsible for writing to a CStream. This can not be used directly be users!")
+            .def("readFromStream", &CPosePDFWrap::readFromStream, "Introduces a pure virtual method responsible for loading from a CStream. This can not be used directly be users!")
+            .def("getMean", &CPosePDFWrap::getMean, "Returns the mean, or mathematical expectation of the probability density distribution (PDF).")
+            .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean, "Returns an estimate of the pose covariance matrix (STATE_LENxSTATE_LEN cov matrix) and the mean, both at once.")
+            .def("saveToTextFile", &CPosePDFWrap::saveToTextFile, "Save PDF's particles to a text file. See derived classes for more information about the format of generated files.")
+            .def("copyFrom", &CPosePDFWrap::copyFrom, "Copy operator, translating if necesary (for example, between particles and gaussian representations).")
+            .def("bayesianFusion", &CPosePDFWrap::bayesianFusion, "Bayesian fusion of two pose distributions (product of two distributions->new distribution), then save the result in this object (WARNING: See implementing classes to see classes that can and cannot be mixtured!).")
+            .def("inverse", &CPosePDFWrap::inverse, "Returns a new PDF such as: NEW_PDF = (0,0,0) - THIS_PDF")
         ;
     }
 
@@ -255,6 +255,7 @@ void export_poses()
     // CPose2D
     {
         class_<CPose2D>("CPose2D", init<>())
+            .def(init<CPose2D>())
             .def(init<CPose3D>())
             .def(init<double, double, double>())
             .add_property("x",
@@ -269,16 +270,16 @@ void export_poses()
                 make_function(CPose2D_get_phi, return_value_policy<copy_non_const_reference>()),
                 CPose2D_set_phi
             )
-            .def("inverse", &CPose2D::inverse)
+            .def("inverse", &CPose2D::inverse, "Convert this pose into its inverse, saving the result in itself.")
             .def("norm", &CPose2D::norm)
-            .def("normalizePhi", &CPose2D::normalizePhi)
+            .def("normalizePhi", &CPose2D::normalizePhi, "Forces \"phi\" to be in the range [-pi,pi];")
             .def("__str__", &CPose2D_asString)
             .def("distance2DTo", &CPose2D::distance2DTo)
-            .def("distance2DFrobeniusTo", &CPose2D::distance2DFrobeniusTo)
+            .def("distance2DFrobeniusTo", &CPose2D::distance2DFrobeniusTo, "Returns the 2D distance from this pose/point to a 2D pose using the Frobenius distance.")
             .def(self + self)
             .def(self - self)
-            .def("to_ROS_Pose_msg", &CPose2D_to_ROS_Pose_msg)
-            .def("from_ROS_Pose_msg", &CPose2D_from_ROS_Pose_msg)
+            .def("to_ROS_Pose_msg", &CPose2D_to_ROS_Pose_msg, "Convert to ROS geometry_msgs/Pose.")
+            .def("from_ROS_Pose_msg", &CPose2D_from_ROS_Pose_msg, "Convert from ROS geometry_msgs/Pose.")
         ;
     }
 
@@ -297,25 +298,26 @@ void export_poses()
                 make_function(CPose3D_get_z, return_value_policy<copy_non_const_reference>()),
                 CPose3D_set_z
             )
-            .def("setYawPitchRoll", &CPose3D::setYawPitchRoll)
-            .def("getYawPitchRoll", &CPose3D_getYawPitchRoll)
-            .def("setFromValues", &CPose3D::setFromValues)
-            .def("to_ROS_Pose_msg", &CPose3D_to_ROS_Pose_msg)
-            .def("from_ROS_Pose_msg", &CPose3D_from_ROS_Pose_msg)
+            .def(init<CPose3D>())
+            .def("setYawPitchRoll", &CPose3D::setYawPitchRoll, "Set the 3 angles of the 3D pose (in radians) - This method recomputes the internal rotation coordinates matrix.")
+            .def("getYawPitchRoll", &CPose3D_getYawPitchRoll, "Returns the three angles (yaw, pitch, roll), in radians, from the rotation matrix.")
+            .def("setFromValues", &CPose3D::setFromValues, "Set the pose from a 3D position (meters) and yaw/pitch/roll angles (radians) - This method recomputes the internal rotation matrix.")
+            .def("to_ROS_Pose_msg", &CPose3D_to_ROS_Pose_msg, "Convert to ROS geometry_msgs/Pose.")
+            .def("from_ROS_Pose_msg", &CPose3D_from_ROS_Pose_msg, "Convert from ROS geometry_msgs/Pose.")
         ;
     }
 
     // CPose3DPDF
     {
         class_<CPose3DPDFWrap, boost::noncopyable>("CPose3DPDF", no_init)
-            .def("jacobiansPoseComposition", &CPose3DPDFWrap::jacobiansPoseComposition)
+            .def("jacobiansPoseComposition", &CPose3DPDFWrap::jacobiansPoseComposition, "This static method computes the pose composition Jacobians.")
         ;
     }
 
     // CPose3DPDFParticles
     {
         class_<CPose3DPDFParticles, bases<CPose3DPDF> >("CPose3DPDFParticles", init<>())
-            .def("getMean", &CPose3DPDFParticles::getMean)
+            .def("getMean", &CPose3DPDFParticles::getMean, "Returns the mean, or mathematical expectation of the probability density distribution (PDF).")
         ;
     }
 }

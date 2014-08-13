@@ -69,9 +69,9 @@ void export_system()
         ;
     }
 
-    def("timestampToParts", &system_timestampToParts);
-    def("time_tToTimestamp", &system_time_tToTimestamp);
-    def("now", &mrpt_system_now);
-    def("TTimeStamp_from_ROS_Time", &TTimeStamp_from_ROS_Time);
-    def("TTimeStamp_to_ROS_Time", &TTimeStamp_to_ROS_Time);
+    def("timestampToParts", &system_timestampToParts, "Gets the individual parts of a date/time (days, hours, minutes, seconds) - UTC time or local time");
+    def("time_tToTimestamp", &system_time_tToTimestamp, "Transform from standard \"time_t\" (actually a double number, it can contain fractions of seconds) to TTimeStamp.");
+    def("now", &mrpt_system_now, "Returns the current (local) time as TTimeStamp.");
+    def("TTimeStamp_from_ROS_Time", &TTimeStamp_from_ROS_Time, "Convert TTimeStamp from ROS Time.");
+    def("TTimeStamp_to_ROS_Time", &TTimeStamp_to_ROS_Time, "Convert TTimeStamp to ROS Time.");
 }

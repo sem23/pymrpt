@@ -107,6 +107,9 @@ void COccupancyGridMap2D_from_ROS_OccupancyGrid_msg(COccupancyGridMap2D &self, o
     }
 }
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(COccupancyGridMap2D_fill_overloads, fill, 0, 1)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(COccupancyGridMap2D_setSize_overloads, setSize, 5, 6)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(COccupancyGridMap2D_resizeGrid_overloads, resizeGrid, 4, 6)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(COccupancyGridMap2D_loadFromBitmapFile_overloads, loadFromBitmapFile, 2, 4)
 // end of COccupancyGridMap2D
 
@@ -189,24 +192,27 @@ void export_maps()
     // COccupancyGridMap2D
     {
         scope s = class_<COccupancyGridMap2D>("COccupancyGridMap2D", init<optional<float, float, float, float, float> >())
-            .def("insertObservation", &COccupancyGridMap2D_insertObservation)
-            .def("saveAsBitmapFile", &COccupancyGridMap2D::saveAsBitmapFile)
-            .def("loadFromBitmapFile", &COccupancyGridMap2D::loadFromBitmapFile, COccupancyGridMap2D_loadFromBitmapFile_overloads())
-            .def("getSizeX", &COccupancyGridMap2D::getSizeX)
-            .def("getSizeY", &COccupancyGridMap2D::getSizeY)
-            .def("getXMin", &COccupancyGridMap2D::getXMin)
-            .def("getXMax", &COccupancyGridMap2D::getXMax)
-            .def("getYMin", &COccupancyGridMap2D::getYMin)
-            .def("getYMax", &COccupancyGridMap2D::getYMax)
-            .def("getResolution", &COccupancyGridMap2D::getResolution)
-            .def("setCell", &COccupancyGridMap2D::setCell)
-            .def("getCell", &COccupancyGridMap2D::getCell)
-            .def("laserScanSimulator", &COccupancyGridMap2D::laserScanSimulator)
+            .def("fill", &COccupancyGridMap2D::fill, COccupancyGridMap2D_fill_overloads()) //, "Fills all the cells with a default value.")
+            .def("setSize", &COccupancyGridMap2D::setSize, COccupancyGridMap2D_setSize_overloads()) //, "Change the size of gridmap, erasing all its previous contents.")
+            .def("resizeGrid", &COccupancyGridMap2D::resizeGrid, COccupancyGridMap2D_resizeGrid_overloads()) //, "Change the size of gridmap, maintaining previous contents.")
+            .def("insertObservation", &COccupancyGridMap2D_insertObservation, "Insert the observation information into this map.\n:param: obs The Observation\n:param: robotPose The 3D pose of the robot mobile base in the map reference system.")
+            .def("saveAsBitmapFile", &COccupancyGridMap2D::saveAsBitmapFile, "Saves the gridmap as a graphical file (BMP,PNG,...).")
+            .def("loadFromBitmapFile", &COccupancyGridMap2D::loadFromBitmapFile, COccupancyGridMap2D_loadFromBitmapFile_overloads()) //, "Load the gridmap from a image in a file (the format can be any supported by CImage::loadFromFile).")
+            .def("getSizeX", &COccupancyGridMap2D::getSizeX, "Returns the horizontal size of grid map in cells count.")
+            .def("getSizeY", &COccupancyGridMap2D::getSizeY, "Returns the vertical size of grid map in cells count.")
+            .def("getXMin", &COccupancyGridMap2D::getXMin, "Returns the \"x\" coordinate of left side of grid map.")
+            .def("getXMax", &COccupancyGridMap2D::getXMax, "Returns the \"x\" coordinate of right side of grid map.")
+            .def("getYMin", &COccupancyGridMap2D::getYMin, "Returns the \"y\" coordinate of top side of grid map.")
+            .def("getYMax", &COccupancyGridMap2D::getYMax, "Returns the \"y\" coordinate of bottom side of grid map.")
+            .def("getResolution", &COccupancyGridMap2D::getResolution, "Returns the resolution of the grid map.")
+            .def("setCell", &COccupancyGridMap2D::setCell, "Change the contents [0,1] of a cell, given its index.")
+            .def("getCell", &COccupancyGridMap2D::getCell, "Read the real valued [0,1] contents of a cell, given its index.")
+            .def("laserScanSimulator", &COccupancyGridMap2D::laserScanSimulator, "Simulates a laser range scan into the current grid map.")
             .def_readwrite("insertionOptions", &COccupancyGridMap2D::insertionOptions)
             .def_readwrite("likelihoodOptions", &COccupancyGridMap2D::likelihoodOptions)
-            .def("to_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_to_ROS_OccupancyGrid_msg1)
-            .def("to_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_to_ROS_OccupancyGrid_msg2)
-            .def("from_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_from_ROS_OccupancyGrid_msg)
+            .def("to_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_to_ROS_OccupancyGrid_msg1, "Convert to ROS OccupancyGrid Message")
+            .def("to_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_to_ROS_OccupancyGrid_msg2, "Convert to ROS OccupancyGrid Message")
+            .def("from_ROS_OccupancyGrid_msg", &COccupancyGridMap2D_from_ROS_OccupancyGrid_msg, "Convert from ROS OccupancyGrid Message")
         ;
 
         // TInsertionOptions
@@ -249,22 +255,22 @@ void export_maps()
     // CPointsMap
     {
         scope s = class_<CPointsMapWrap, boost::noncopyable>("CPointsMap", no_init)
-            .def("reserve", &CPointsMapWrap::reserve)
-            .def("resize", &CPointsMapWrap::resize)
-            .def("setSize", &CPointsMapWrap::setSize)
-            .def("setPointFast", &CPointsMapWrap::setPointFast)
-            .def("insertPointFast", &CPointsMapWrap::insertPointFast)
-            .def("copyFrom", &CPointsMapWrap::copyFrom)
-            .def("getPointAllFieldsFast", &CPointsMapWrap::getPointAllFieldsFast)
-            .def("setPointAllFieldsFast", &CPointsMapWrap::setPointAllFieldsFast)
+            .def("reserve", &CPointsMapWrap::reserve, "Reserves memory for a given number of points: the size of the map does not change, it only reserves the memory.")
+            .def("resize", &CPointsMapWrap::resize, "Resizes all point buffers so they can hold the given number of points: newly created points are set to default values, and old contents are not changed.")
+            .def("setSize", &CPointsMapWrap::setSize, "Resizes all point buffers so they can hold the given number of points, *erasing* all previous contents and leaving all points to default values.")
+            .def("setPointFast", &CPointsMapWrap::setPointFast, "Changes the coordinates of the given point (0-based index), *without* checking for out-of-bounds and *without* calling mark_as_modified().")
+            .def("insertPointFast", &CPointsMapWrap::insertPointFast, "The virtual method for insertPoint() *without* calling mark_as_modified().")
+            .def("copyFrom", &CPointsMapWrap::copyFrom, "Virtual assignment operator, copies as much common data (XYZ, color,...) as possible from the source map into this one.")
+            .def("getPointAllFieldsFast", &CPointsMapWrap::getPointAllFieldsFast, "Get all the data fields for one point as a vector: depending on the implementation class this can be [X Y Z] or [X Y Z R G B], etc...")
+            .def("setPointAllFieldsFast", &CPointsMapWrap::setPointAllFieldsFast, "Set all the data fields for one point as a vector: depending on the implementation class this can be [X Y Z] or [X Y Z R G B], etc...")
         ;
     }
 
     // CSimplePointsMap
     {
         scope s = class_<CSimplePointsMap, bases<CPointsMap> >("CSimplePointsMap", init<>())
-            .def("loadFromRangeScan", &CSimplePointsMap_loadFromRangeScan1)
-            .def("loadFromRangeScan", &CSimplePointsMap_loadFromRangeScan2)
+            .def("loadFromRangeScan", &CSimplePointsMap_loadFromRangeScan1, "Transform the range scan into a set of cartessian coordinated points. The options in \"insertionOptions\" are considered in this method.")
+            .def("loadFromRangeScan", &CSimplePointsMap_loadFromRangeScan2, "Transform the range scan into a set of cartessian coordinated points. The options in \"insertionOptions\" are considered in this method.")
         ;
     }
 

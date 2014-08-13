@@ -256,9 +256,7 @@ void export_obs()
     {
         class_<CActionCollection>("CActionCollection", init<>())
             .def("clear", &CActionCollection::clear, "Erase all actions from the list.")
-             .def("insert", &CActionCollection::insert, "Add a new object to the list.")
-//             .def("insert", &CActionCollection_insert1, "Add a new object to the list.")
-//             .def("insert", &CActionCollection_insert2, "Add a new object to the list.")
+            .def("insert", &CActionCollection::insert, "Add a new object to the list.")
             .def("size", &CActionCollection::size, "Returns the actions count in the collection.")
             .def("eraseByIndex", &CActionCollection::eraseByIndex, "Remove an action from the list by its index.")
         ;
@@ -267,7 +265,6 @@ void export_obs()
     // CActionRobotMovement2D
     {
         scope s = class_<CActionRobotMovement2D, bases<CAction> >("CActionRobotMovement2D", init<>())
-//             .def_readwrite("timestamp", &CActionRobotMovement2D::timestamp)
             .def_readwrite("rawOdometryIncrementReading", &CActionRobotMovement2D::rawOdometryIncrementReading)
             .def_readwrite("estimationMethod", &CActionRobotMovement2D::estimationMethod)
             .def_readwrite("hasEncodersInfo", &CActionRobotMovement2D::hasEncodersInfo)
@@ -276,8 +273,8 @@ void export_obs()
             .def_readwrite("velocityLin", &CActionRobotMovement2D::velocityLin)
             .def_readwrite("velocityAng", &CActionRobotMovement2D::velocityAng)
             .def_readwrite("motionModelConfiguration", &CActionRobotMovement2D::motionModelConfiguration)
-            .def("computeFromOdometry", &CActionRobotMovement2D::computeFromOdometry)
-            .def("computeFromEncoders", &CActionRobotMovement2D::computeFromEncoders)
+            .def("computeFromOdometry", &CActionRobotMovement2D::computeFromOdometry, "Computes the PDF of the pose increment from an odometry reading and according to the given motion model (speed and encoder ticks information is not modified).")
+            .def("computeFromEncoders", &CActionRobotMovement2D::computeFromEncoders, "If \"hasEncodersInfo\"=true, this method updates the pose estimation according to the ticks from both encoders and the passed parameters, which is passed internally to the method \"computeFromOdometry\" with the last used PDF options (or the defualt ones if not explicitly called by the user).")
         ;
 
         // TEstimationMethod
@@ -327,8 +324,9 @@ void export_obs()
     {
         class_<CObservationWrap, boost::noncopyable>("CObservation", no_init)
             .add_property("timestamp", &CObservation_get_timestamp, &CObservation_set_timestamp)
-            .def("getSensorPose", &CObservationWrap::getSensorPose)
-            .def("setSensorPose", &CObservationWrap::setSensorPose)
+            .def_readwrite("sensorLabel", &CObservation::timestamp)
+            .def("getSensorPose", &CObservationWrap::getSensorPose, "A general method to retrieve the sensor pose on the robot.")
+            .def("setSensorPose", &CObservationWrap::setSensorPose, "A general method to change the sensor pose on the robot.")
         ;
     }
 
@@ -342,8 +340,8 @@ void export_obs()
             .def_readwrite("hasVelocities", &CObservationOdometry::hasVelocities)
             .def_readwrite("velocityLin", &CObservationOdometry::velocityLin)
             .def_readwrite("velocityAng", &CObservationOdometry::velocityAng)
-            .def("to_ROS_RawOdometry_msg", &CObservationOdometry_to_ROS_RawOdometry_msg)
-            .def("from_ROS_RawOdometry_msg", &CObservationOdometry_from_ROS_RawOdometry_msg)
+            .def("to_ROS_RawOdometry_msg", &CObservationOdometry_to_ROS_RawOdometry_msg, "Convert to ROS pymrpt_msgs/RawOdometry.")
+            .def("from_ROS_RawOdometry_msg", &CObservationOdometry_from_ROS_RawOdometry_msg, "Convert from ROS pymrpt_msgs/RawOdometry.")
         ;
     }
     // CObservationRange
@@ -353,8 +351,8 @@ void export_obs()
             .def_readwrite("maxSensorDistance", &CObservationRange::maxSensorDistance)
             .def_readwrite("sensorConeApperture", &CObservationRange::sensorConeApperture)
             .def_readwrite("sensedData", &CObservationRange::sensedData)
-            .def("to_ROS_Range_msg", &CObservationRange_to_ROS_Range_msg)
-            .def("from_ROS_Range_msg", &CObservationRange_from_ROS_Range_msg)
+            .def("to_ROS_Range_msg", &CObservationRange_to_ROS_Range_msg, "Convert to ROS sensor_msgs/Range.")
+            .def("from_ROS_Range_msg", &CObservationRange_from_ROS_Range_msg, "Convert from ROS sensor_msgs/Range.")
         ;
 
         // TMeasurement
@@ -386,19 +384,20 @@ void export_obs()
             .def_readwrite("stdError", &CObservation2DRangeScan::stdError)
             .def_readwrite("beamAperture", &CObservation2DRangeScan::beamAperture)
             .def_readwrite("deltaPitch", &CObservation2DRangeScan::deltaPitch)
-            .def("to_ROS_LaserScan_msg", &CObservation2DRangeScan_to_ROS_LaserScan_msg)
-            .def("from_ROS_LaserScan_msg", &CObservation2DRangeScan_from_ROS_LaserScan_msg)
+            .def("to_ROS_LaserScan_msg", &CObservation2DRangeScan_to_ROS_LaserScan_msg, "Convert to ROS sensor_msgs/LaserScan.")
+            .def("from_ROS_LaserScan_msg", &CObservation2DRangeScan_from_ROS_LaserScan_msg, "Convert to ROS sensor_msgs/LaserScan.")
         ;
     }
 
     // CRawlog
     {
         class_<CRawlog>("CRawlog", init<>())
-            .def("clear", &CRawlog::clear)
-            .def("addAction", &CRawlog::addAction)
-            .def("addActions", &CRawlog::addActions)
-            .def("addObservations", &CRawlog::addObservations)
-            .def("saveToRawLogFile", &CRawlog::saveToRawLogFile)
+            .def("clear", &CRawlog::clear, "Clear the sequence of actions/observations, freeing the memory of all the objects in the list.")
+            .def("addAction", &CRawlog::addAction, "Add an action to the sequence: a collection of just one element is created. The object is duplicated, so the original one can be free if desired.")
+            .def("addActions", &CRawlog::addActions, "Add a set of actions to the sequence; the object is duplicated, so the original one can be free if desired.")
+            .def("addObservations", &CRawlog::addObservations, "Add a set of observations to the sequence; the object is duplicated, so the original one can be free if desired.")
+            .def("loadFromRawLogFile", &CRawlog::loadFromRawLogFile, "Load the contents from a file containing either CRawLog objects or directly Action/Observation object pairs.")
+            .def("saveToRawLogFile", &CRawlog::saveToRawLogFile, "Saves the contents to a rawlog-file, compatible with RawlogViewer (As the sequence of internal objects).")
         ;
     }
 
@@ -416,9 +415,9 @@ void export_obs()
     // CSimpleMap
     {
         class_<CSimpleMap>("CSimpleMap", init<>())
-            .def("saveToFile", &CSimpleMap::saveToFile)
-            .def("loadFromFile", &CSimpleMap::loadFromFile)
-            .def("insert", &CSimpleMap_insert)
+            .def("saveToFile", &CSimpleMap::saveToFile, "Save this object to a .simplemap binary file (compressed with gzip)")
+            .def("loadFromFile", &CSimpleMap::loadFromFile, "Load the contents of this object from a .simplemap binary file (possibly compressed with gzip).")
+            .def("insert", &CSimpleMap_insert, "Add a new pair to the sequence. The objects are copied, so original ones can be free if desired after insertion.")
             .def_readwrite("size", &CSimpleMap::size)
         ;
     }

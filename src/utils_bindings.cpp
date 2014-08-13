@@ -42,32 +42,9 @@ struct CLoadableOptionsWrap : CLoadableOptions, wrapper<CLoadableOptions>
     }
 };
 
-// CRobotSimulator
-void CRobotSimulator_setDelayModelParams(CRobotSimulator self, float TAU, float DELAY)
-{
-    self.setDelayModelParams(TAU, DELAY);
-}
-
-void CRobotSimulator_setOdometryErrors(
-    CRobotSimulator &self,
-    bool enabled,
-    double Ax_err_bias,
-    double Ax_err_std,
-    double Ay_err_bias,
-    double Ay_err_std,
-    double Aphi_err_bias,
-    double Aphi_err_std)
-{
-    self.setOdometryErrors(
-        enabled,
-        Ax_err_bias,
-        Ax_err_std,
-        Ay_err_bias,
-        Ay_err_std,
-        Aphi_err_bias,
-        Aphi_err_std
-    );
-}
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(CRobotSimulator_setDelayModelParams_overloads, setDelayModelParams, 0, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(CRobotSimulator_setOdometryErrors_overloads, setOdometryErrors, 1, 7)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(CRobotSimulator_resetOdometry_overloads, resetOdometry, 0, 1)
 
 CPose2D CRobotSimulator_getOdometry(CRobotSimulator &self)
 {
@@ -108,40 +85,40 @@ void export_utils()
     // CLoadableOptions
     {
         class_<CLoadableOptionsWrap, boost::noncopyable>("CLoadableOptions", no_init)
-            .def("loadFromConfigFile", &CLoadableOptionsWrap::loadFromConfigFile)
-            .def("loadFromConfigFileName", &CLoadableOptionsWrap::loadFromConfigFileName)
-            .def("saveToConfigFile", &CLoadableOptionsWrap::saveToConfigFile)
-            .def("saveToConfigFileName", &CLoadableOptionsWrap::saveToConfigFileName)
-            .def("dumpToConsole", &CLoadableOptionsWrap::dumpToConsole)
-            .def("dumpToTextStream", &CLoadableOptionsWrap::dumpToTextStream)
+            .def("loadFromConfigFile", &CLoadableOptionsWrap::loadFromConfigFile, "This method load the options from a \".ini\"-like file or memory-stored string list.")
+            .def("loadFromConfigFileName", &CLoadableOptionsWrap::loadFromConfigFileName, "Behaves like loadFromConfigFile, but you can pass directly a file name and a temporary CConfigFile object will be created automatically to load the file.")
+            .def("saveToConfigFile", &CLoadableOptionsWrap::saveToConfigFile, "This method saves the options to a \".ini\"-like file or memory-stored string list.")
+            .def("saveToConfigFileName", &CLoadableOptionsWrap::saveToConfigFileName, "Behaves like saveToConfigFile, but you can pass directly a file name and a temporary CConfigFile object will be created automatically to save the file.")
+            .def("dumpToConsole", &CLoadableOptionsWrap::dumpToConsole, "Just like dumpToTextStream() but sending the text to the console (std::cout)")
+            .def("dumpToTextStream", &CLoadableOptionsWrap::dumpToTextStream, "This method should clearly display all the contents of the structure in textual form, sending it to a CStream.")
         ;
     }
 
     // CRobotSimulator
     {
-        class_<CRobotSimulator>("CRobotSimulator", init<>())
-            .def("setDelayModelParams", &CRobotSimulator_setDelayModelParams, "Change the model of delays used for the orders sent to the robot")
-            .def("setOdometryErrors", &CRobotSimulator_setOdometryErrors, "Enable/Disable odometry errors")
-            .def("setRealPose", &CRobotSimulator::setRealPose)
-            .def("getX", &CRobotSimulator::getX)
-            .def("getY", &CRobotSimulator::getY)
-            .def("getPHI", &CRobotSimulator::getPHI)
-            .def("getT", &CRobotSimulator::getT)
-            .def("getV", &CRobotSimulator::getV)
-            .def("getW", &CRobotSimulator::getW)
-            .def("setV", &CRobotSimulator::setV)
-            .def("setW", &CRobotSimulator::setW)
-            .def("movementCommand", &CRobotSimulator::movementCommand)
-            .def("resetStatus", &CRobotSimulator::resetStatus)
-            .def("resetTime", &CRobotSimulator::resetTime)
-            .def("resetOdometry", &CRobotSimulator::resetOdometry)
-            .def("simulateInterval", &CRobotSimulator::simulateInterval)
-            .def("getOdometry", &CRobotSimulator_getOdometry)
-            .def("getRealPose", &CRobotSimulator_getRealPose)
+        class_<CRobotSimulator>("CRobotSimulator", "This class can be used to simulate the kinematics and dynamics of a differential driven planar mobile robot, including odometry errors and dynamics limitations.", init< optional<float, float> >(args("TAU", "DELAY"), "Constructor with default dynamic model-parameters"))
+            .def("setDelayModelParams", &CRobotSimulator::setDelayModelParams, CRobotSimulator_setDelayModelParams_overloads(args("TAU_delay_sec=1.8f", "CMD_delay_sec=0.3f"), "Change the model of delays used for the orders sent to the robot"))
+            .def("setOdometryErrors", &CRobotSimulator::setOdometryErrors, CRobotSimulator_setOdometryErrors_overloads( args("enabled", "Ax_err_bias", "Ax_err_std", "Ay_err_bias", "Ay_err_std", "Aphi_err_bias", "Aphi_err_std"), "Enable/Disable odometry errors. Errors in odometry are introduced per millisecond."))
+            .def("setRealPose", &CRobotSimulator::setRealPose, args("pose"), "Reset actual robot pose (inmediately, without simulating the movement along time).")
+            .def("getX", &CRobotSimulator::getX, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("getY", &CRobotSimulator::getY, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("getPHI", &CRobotSimulator::getPHI, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("getT", &CRobotSimulator::getT, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("getV", &CRobotSimulator::getV, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("getW", &CRobotSimulator::getW, "Read the instantaneous, error-free status of the simulated robot.")
+            .def("setV", &CRobotSimulator::setV, args("v"), "Set actual robot velocity, error-free status of the simulated robot.")
+            .def("setW", &CRobotSimulator::setW, args("w"), "Set actual robot turnrate, error-free status of the simulated robot.")
+            .def("movementCommand", &CRobotSimulator::movementCommand, args("lin_vel", "ang_vel"), "Used to command the robot a desired movement (velocities).")
+            .def("resetStatus", &CRobotSimulator::resetStatus, "Reset all the simulator variables to 0 (All but current simulator time).")
+            .def("resetTime", &CRobotSimulator::resetTime, "Reset time counter.")
+            .def("simulateInterval", &CRobotSimulator::simulateInterval, args("dt"), "This method must be called periodically to simulate discrete time intervals.")
+            .def("resetOdometry", &CRobotSimulator::resetOdometry,  CRobotSimulator_resetOdometry_overloads(args("newOdo"), "Forces odometry to be set to a specified values."))
+            .def("getOdometry", &CRobotSimulator_getOdometry, "Reads the simulated robot odometry (this is NOT equal to the actual error-free robot coordinates).")
+            .def("getRealPose", &CRobotSimulator_getRealPose, "Reads the real robot pose.")
         ;
     }
 
     // static module functions
-    def("DEG2RAD", &mrpt_utils_DEG2RAD);
-    def("RAD2DEG", &mrpt_utils_RAD2DEG);
+    def("DEG2RAD", &mrpt_utils_DEG2RAD, args("deg"), "Convert degrees to radiants.");
+    def("RAD2DEG", &mrpt_utils_RAD2DEG, args("rad"), "Convert radiants to degrees.");
 }
