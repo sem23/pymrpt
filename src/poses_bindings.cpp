@@ -223,6 +223,18 @@ struct CPose3DPDFWrap : CPose3DPDF, wrapper<CPose3DPDF>
     }
 };
 
+list CPosePDFGaussian_get_cov(CPosePDFGaussian &self)
+{
+    list cov;
+    for (int i = 0; i < 9; ++i) { cov.append(self.cov(i)); }
+    return cov;
+}
+
+void CPosePDFGaussian_set_cov(CPosePDFGaussian &self, list cov)
+{
+    for (int i = 0; i < 9; ++i) { self.cov(i) = extract<double>(cov[i]); }
+}
+
 void export_poses()
 {
     // map namespace to be submodule of mrpt package
@@ -236,7 +248,7 @@ void export_poses()
             .def("writeToStream", &CPosePDFWrap::writeToStream, "Introduces a pure virtual method responsible for writing to a CStream. This can not be used directly be users!")
             .def("readFromStream", &CPosePDFWrap::readFromStream, "Introduces a pure virtual method responsible for loading from a CStream. This can not be used directly be users!")
             .def("getMean", &CPosePDFWrap::getMean, "Returns the mean, or mathematical expectation of the probability density distribution (PDF).")
-            .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean, "Returns an estimate of the pose covariance matrix (STATE_LENxSTATE_LEN cov matrix) and the mean, both at once.")
+             .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean, "Returns an estimate of the pose covariance matrix (STATE_LENxSTATE_LEN cov matrix) and the mean, both at once.")
             .def("saveToTextFile", &CPosePDFWrap::saveToTextFile, "Save PDF's particles to a text file. See derived classes for more information about the format of generated files.")
             .def("copyFrom", &CPosePDFWrap::copyFrom, "Copy operator, translating if necesary (for example, between particles and gaussian representations).")
             .def("bayesianFusion", &CPosePDFWrap::bayesianFusion, "Bayesian fusion of two pose distributions (product of two distributions->new distribution), then save the result in this object (WARNING: See implementing classes to see classes that can and cannot be mixtured!).")
@@ -246,9 +258,9 @@ void export_poses()
 
     // CPosePDFGaussian
     {
-        class_<CPosePDFGaussian, bases<CPosePDF> >("CPosePDFGaussian", init<optional<CPose2D> >())
+        class_<CPosePDFGaussian, bases<CPosePDFWrap> >("CPosePDFGaussian", init<optional<CPose2D> >())
             .def_readwrite("mean", &CPosePDFGaussian::mean)
-            .def_readwrite("cov", &CPosePDFGaussian::cov)
+            .add_property("cov", CPosePDFGaussian_get_cov, CPosePDFGaussian_set_cov)
         ;
     }
 

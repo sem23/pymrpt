@@ -85,6 +85,8 @@ add_library(pymrpt
   src/bindings.cpp
 )
 
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
+
 ## Declare a cpp executable
 # add_executable(python-mrpt_node src/python-mrpt_node.cpp)
 
