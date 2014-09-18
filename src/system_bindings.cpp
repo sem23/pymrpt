@@ -1,5 +1,8 @@
 #include "system_bindings.h"
 
+/* STD */
+#include <stdint.h>
+
 object system_timestampToParts(long_ timestamp)
 {
     // import TTimeParts
@@ -8,7 +11,7 @@ object system_timestampToParts(long_ timestamp)
          "ttimeparts = TTimeParts()\n",
          object(), locals);
     object ttimeparts = locals["ttimeparts"];
-    long t = extract<long>(timestamp);
+    uint64_t t = extract<uint64_t>(timestamp);
     TTimeParts p;
     timestampToParts(t, p);
     ttimeparts.attr("year") = p.year;
@@ -29,7 +32,7 @@ long_ system_time_tToTimestamp(const double &t)
 
 object TTimeStamp_to_ROS_Time(long_ timestamp)
 {
-    double secs = timestampTotime_t(extract<long>(timestamp));
+    double secs = timestampTotime_t(extract<uint64_t>(timestamp));
     // import rospy.Time
     dict locals;
     locals["secs"] = secs;

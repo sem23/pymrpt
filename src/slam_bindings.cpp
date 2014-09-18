@@ -24,6 +24,9 @@
 #include "slam_bindings.h"
 #include "poses_bindings.h"
 
+/* STD */
+#include <stdint.h>
+
 using namespace boost::python;
 using namespace mrpt::poses;
 using namespace mrpt::slam;
@@ -51,7 +54,7 @@ tuple CPathPlanningCircularRobot_computePath(CPathPlanningCircularRobot &self, C
     // convert to python compatible
     boost::python::list ret_val;
     boost::python::list py_path;
-    for (int i = 0; i < path.size(); ++i) {
+    for (int32_t i = 0; i < path.size(); ++i) {
         py_path.append(path[i]);
     }
     // setup return value
@@ -260,7 +263,7 @@ void export_slam()
             .def_readwrite("Axy_aprox_derivatives", &CICP::TConfigParams::Axy_aprox_derivatives)
             .def_readwrite("LM_initial_lambda", &CICP::TConfigParams::LM_initial_lambda)
             .def_readwrite("skip_cov_calculation", &CICP::TConfigParams::skip_cov_calculation)
-            .def_readwrite("skip_quality_calculation", &CICP::TConfigParams::skip_quality_calculation)
+//          .def_readwrite("skip_quality_calculation", &CICP::TConfigParams::skip_quality_calculation)
             .def_readwrite("corresponding_points_decimation", &CICP::TConfigParams::corresponding_points_decimation)
         ;
 

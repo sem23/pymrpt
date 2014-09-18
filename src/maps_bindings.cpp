@@ -27,6 +27,9 @@
 #include "slam_bindings.h"
 #include "system_bindings.h"
 
+/* STD */
+#include <stdint.h>
+
 using namespace boost::python;
 using namespace mrpt::poses;
 using namespace mrpt::slam;
@@ -48,8 +51,8 @@ object COccupancyGridMap2D_to_ROS_OccupancyGrid_msg1(COccupancyGridMap2D &self, 
          object(), locals);
     object occupancy_grid_msg = locals["occupancy_grid_msg"];
     // set info
-    int width = self.getSizeX();
-    int height = self.getSizeY();
+    int32_t width = self.getSizeX();
+    int32_t height = self.getSizeY();
     occupancy_grid_msg.attr("header").attr("frame_id") = frame_id;
     occupancy_grid_msg.attr("header").attr("stamp") = TTimeStamp_to_ROS_Time(long_(mrpt::system::now()));
     occupancy_grid_msg.attr("info").attr("width") = width;
@@ -59,8 +62,8 @@ object COccupancyGridMap2D_to_ROS_OccupancyGrid_msg1(COccupancyGridMap2D &self, 
     occupancy_grid_msg.attr("info").attr("origin").attr("position").attr("y") = self.getYMin();
     // set data
     boost::python::list data;
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    for (int32_t y = 0; y < height; ++y) {
+        for (int32_t x = 0; x < width; ++x) {
             float occupancy = self.getCell(x,y);
             if (occupancy < 0.45) {
                 data.append(100);
@@ -86,17 +89,17 @@ void COccupancyGridMap2D_from_ROS_OccupancyGrid_msg(COccupancyGridMap2D &self, o
     float x_min = extract<float>(occupancy_grid_msg.attr("info").attr("origin").attr("position").attr("x"));
     float y_min = extract<float>(occupancy_grid_msg.attr("info").attr("origin").attr("position").attr("y"));
     float resolution = extract<float>(occupancy_grid_msg.attr("info").attr("resolution"));
-    int width = extract<int>(occupancy_grid_msg.attr("info").attr("width"));
-    int height = extract<int>(occupancy_grid_msg.attr("info").attr("height"));
+    int32_t width = extract<int32_t>(occupancy_grid_msg.attr("info").attr("width"));
+    int32_t height = extract<int32_t>(occupancy_grid_msg.attr("info").attr("height"));
     float x_max = x_min + width * resolution;
     float y_max = y_min + height * resolution;
     self.setSize(x_min, x_max, y_min, y_max, resolution);
     // set data
-    int idx = 0;
+    int32_t idx = 0;
     boost::python::list data = extract<boost::python::list>(occupancy_grid_msg.attr("data"));
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            int occupancy = extract<int>(data[idx]);
+    for (int32_t y = 0; y < height; ++y) {
+        for (int32_t x = 0; x < width; ++x) {
+            int32_t occupancy = extract<int32_t>(data[idx]);
             if (occupancy >= 0) {
                 self.setCell(x, y, (100 - occupancy) / 100.0);
             } else {

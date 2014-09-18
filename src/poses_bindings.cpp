@@ -17,6 +17,9 @@
 
 #include "math.h"
 
+/* STD */
+#include <stdint.h>
+
 using namespace boost::python;
 using namespace mrpt::poses;
 using namespace mrpt::utils;
@@ -113,12 +116,12 @@ CObject *CPosePDFWrap::duplicate() const
     return this->get_override("duplicate")();
 }
 
-void CPosePDFWrap::writeToStream(CStream& stream, int* pos) const
+void CPosePDFWrap::writeToStream(CStream& stream, int32_t* pos) const
 {
     this->get_override("writeToStream")(stream, pos);
 }
 
-void CPosePDFWrap::readFromStream(CStream& stream, int pos)
+void CPosePDFWrap::readFromStream(CStream& stream, int32_t pos)
 {
     this->get_override("readFromStream")(stream, pos);
 }
@@ -172,12 +175,12 @@ struct CPose3DPDFWrap : CPose3DPDF, wrapper<CPose3DPDF>
         return this->get_override("duplicate")();
     }
 
-    void writeToStream(mrpt::utils::CStream& stream, int* pos) const
+    void writeToStream(mrpt::utils::CStream& stream, int32_t* pos) const
     {
         this->get_override("writeToStream")(stream, pos);
     }
 
-    void readFromStream(mrpt::utils::CStream& stream, int pos)
+    void readFromStream(mrpt::utils::CStream& stream, int32_t pos)
     {
         this->get_override("readFromStream")(stream, pos);
     }
@@ -226,13 +229,13 @@ struct CPose3DPDFWrap : CPose3DPDF, wrapper<CPose3DPDF>
 list CPosePDFGaussian_get_cov(CPosePDFGaussian &self)
 {
     list cov;
-    for (int i = 0; i < 9; ++i) { cov.append(self.cov(i)); }
+    for (int32_t i = 0; i < 9; ++i) { cov.append(self.cov(i)); }
     return cov;
 }
 
 void CPosePDFGaussian_set_cov(CPosePDFGaussian &self, list cov)
 {
-    for (int i = 0; i < 9; ++i) { self.cov(i) = extract<double>(cov[i]); }
+    for (int32_t i = 0; i < 9; ++i) { self.cov(i) = extract<double>(cov[i]); }
 }
 
 void export_poses()
@@ -248,7 +251,7 @@ void export_poses()
             .def("writeToStream", &CPosePDFWrap::writeToStream, "Introduces a pure virtual method responsible for writing to a CStream. This can not be used directly be users!")
             .def("readFromStream", &CPosePDFWrap::readFromStream, "Introduces a pure virtual method responsible for loading from a CStream. This can not be used directly be users!")
             .def("getMean", &CPosePDFWrap::getMean, "Returns the mean, or mathematical expectation of the probability density distribution (PDF).")
-             .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean, "Returns an estimate of the pose covariance matrix (STATE_LENxSTATE_LEN cov matrix) and the mean, both at once.")
+            .def("getCovarianceAndMean", &CPosePDFWrap::getCovarianceAndMean, "Returns an estimate of the pose covariance matrix (STATE_LENxSTATE_LEN cov matrix) and the mean, both at once.")
             .def("saveToTextFile", &CPosePDFWrap::saveToTextFile, "Save PDF's particles to a text file. See derived classes for more information about the format of generated files.")
             .def("copyFrom", &CPosePDFWrap::copyFrom, "Copy operator, translating if necesary (for example, between particles and gaussian representations).")
             .def("bayesianFusion", &CPosePDFWrap::bayesianFusion, "Bayesian fusion of two pose distributions (product of two distributions->new distribution), then save the result in this object (WARNING: See implementing classes to see classes that can and cannot be mixtured!).")
@@ -287,7 +290,7 @@ void export_poses()
             .def("normalizePhi", &CPose2D::normalizePhi, "Forces \"phi\" to be in the range [-pi,pi];")
             .def("__str__", &CPose2D_asString)
             .def("distance2DTo", &CPose2D::distance2DTo)
-            .def("distance2DFrobeniusTo", &CPose2D::distance2DFrobeniusTo, "Returns the 2D distance from this pose/point to a 2D pose using the Frobenius distance.")
+//          .def("distance2DFrobeniusTo", &CPose2D::distance2DFrobeniusTo, "Returns the 2D distance from this pose/point to a 2D pose using the Frobenius distance.")
             .def(self + self)
             .def(self - self)
             .def("to_ROS_Pose_msg", &CPose2D_to_ROS_Pose_msg, "Convert to ROS geometry_msgs/Pose.")

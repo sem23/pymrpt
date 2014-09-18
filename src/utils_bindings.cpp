@@ -1,5 +1,8 @@
 #include "utils_bindings.h"
 
+/* STD */
+#include <stdint.h>
+
 // CObject wrapper
 CObject *CObjectWrap::duplicate() const
 {
@@ -12,12 +15,12 @@ CObject *CSerializableWrap::duplicate() const
     return this->get_override("duplicate")();
 }
 
-void CSerializableWrap::writeToStream(mrpt::utils::CStream &out, int *getVersion) const
+void CSerializableWrap::writeToStream(mrpt::utils::CStream &out, int32_t *getVersion) const
 {
     this->get_override("writeToStream")(out, getVersion);
 }
 
-void CSerializableWrap::readFromStream(mrpt::utils::CStream &in, int version)
+void CSerializableWrap::readFromStream(mrpt::utils::CStream &in, int32_t version)
 {
     this->get_override("readFromStream")(in, version);
 }

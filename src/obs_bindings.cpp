@@ -21,6 +21,9 @@
 #include "utils_bindings.h"
 #include "obs_bindings.h"
 
+/* STD */
+#include <stdint.h>
+
 using namespace boost::python;
 
 using namespace mrpt::poses;
@@ -58,12 +61,12 @@ struct CObservationWrap : CObservation, wrapper<CObservation>
         return this->get_override("duplicate")();
     }
 
-    void writeToStream(mrpt::utils::CStream& stream, int* pos) const
+    void writeToStream(mrpt::utils::CStream& stream, int32_t* pos) const
     {
         this->get_override("writeToStream")(stream, pos);
     }
 
-    void readFromStream(mrpt::utils::CStream& stream, int pos)
+    void readFromStream(mrpt::utils::CStream& stream, int32_t pos)
     {
         this->get_override("readFromStream")(stream, pos);
     }
@@ -86,7 +89,7 @@ long_ CObservation_get_timestamp(CObservation &self)
 
 void CObservation_set_timestamp(CObservation &self, long_ timestamp)
 {
-    self.timestamp = extract<long>(timestamp);
+    self.timestamp = extract<uint64_t>(timestamp);
 }
 // end of CObservation
 
@@ -116,7 +119,7 @@ void CObservationOdometry_from_ROS_RawOdometry_msg(CObservationOdometry &self, o
 {
     // set info
     self.sensorLabel = extract<std::string>(raw_odometry_msg.attr("header").attr("frame_id"));
-    self.timestamp = extract<long>(TTimeStamp_from_ROS_Time(raw_odometry_msg.attr("header").attr("stamp")));
+    self.timestamp = extract<uint64_t>(TTimeStamp_from_ROS_Time(raw_odometry_msg.attr("header").attr("stamp")));
     self.hasEncodersInfo = extract<bool>(raw_odometry_msg.attr("has_encoders_info"));
     self.hasVelocities = extract<bool>(raw_odometry_msg.attr("has_velocities"));
     // set data
@@ -152,7 +155,7 @@ void CObservationRange_from_ROS_Range_msg(CObservationRange &self, object range_
 {
     // set info
     self.sensorLabel = extract<std::string>(range_msg.attr("header").attr("frame_id"));
-    self.timestamp = extract<long>(TTimeStamp_from_ROS_Time(range_msg.attr("header").attr("stamp")));
+    self.timestamp = extract<uint64_t>(TTimeStamp_from_ROS_Time(range_msg.attr("header").attr("stamp")));
     self.minSensorDistance = extract<float>(range_msg.attr("min_range"));
     self.maxSensorDistance = extract<float>(range_msg.attr("max_range"));
     self.sensorConeApperture = extract<float>(range_msg.attr("field_of_view"));
@@ -192,7 +195,7 @@ void CObservation2DRangeScan_from_ROS_LaserScan_msg(CObservation2DRangeScan &sel
 {
     // set info
     self.sensorLabel = extract<std::string>(scan_msg.attr("header").attr("frame_id"));
-    self.timestamp = extract<long>(TTimeStamp_from_ROS_Time(scan_msg.attr("header").attr("stamp")));
+    self.timestamp = extract<uint64_t>(TTimeStamp_from_ROS_Time(scan_msg.attr("header").attr("stamp")));
     self.maxRange = extract<float>(scan_msg.attr("range_max"));
     self.aperture = extract<float>(scan_msg.attr("angle_max")) - extract<float>(scan_msg.attr("angle_min"));
     self.beamAperture = extract<float>(scan_msg.attr("angle_increment"));
@@ -202,8 +205,12 @@ void CObservation2DRangeScan_from_ROS_LaserScan_msg(CObservation2DRangeScan &sel
     self.validRange.clear();
     list ranges = extract<list>(scan_msg.attr("ranges"));
     for (int i = 0; i < len(ranges); ++i) {
-        self.scan.push_back(extract<float>(ranges[i]));
-        self.validRange.push_back('\x01');
+        float range = extract<float>(ranges[i]);
+        self.scan.push_back(range);
+        if (range < self.maxRange - 0.01)
+          self.validRange.push_back('\x01');
+        else
+          self.validRange.push_back('\x00');
     }
 }
 // end of CObservation2DRangeScan
